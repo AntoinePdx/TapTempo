@@ -5,22 +5,26 @@ Web app de tap tempo pour iPhone : fichiers statiques sur GitHub Pages, install�
 ## Fichiers
 
 - `index.html` : toute l'app (HTML + CSS + JS vanilla dans une IIFE). Aucun framework, aucun build.
-- `sw.js` : service worker, cache-first. Cache nommé par la constante `VERSION` (actuellement `tap-tempo-v3`).
+- `sw.js` : service worker, cache-first. Cache nommé par la constante `VERSION` (actuellement `tap-tempo-v4`).
 - `manifest.webmanifest` : manifeste PWA (standalone, portrait, fond `#0d0e12`).
 - `icons/` : `icon-180.png` (apple-touch-icon), `icon-192.png`, `icon-512.png` (sert aussi d'icône maskable).
+- `fonts/` : polices auto-hébergées en woff2, sous-ensemble latin (Big Shoulders Display variable, IBM Plex Mono 400 et 600) + licences OFL. Pas de Google Fonts.
 - `README.md` : mise en ligne et utilisation (en français).
 
 ## Fonctionnement
 
 - Pavé TAP : détection au `pointerdown` (pas de délai de 300 ms) ; taps espacés de moins de 120 ms ignorés (`MIN_GAP`).
 - BPM = régression linéaire (moindres carrés) du temps de tap en fonction de son index, sur les 12 derniers taps (`WINDOW`). Pente = intervalle entre temps.
-- « Locked » dès 6 taps si la gigue (écart-type des résidus) est < 18 ms.
-- Nouvelle mesure après 2 s de silence (`RESET_AFTER`, ou 2,2 × l'intervalle si plus long), ou si un écart sort de [0,6 ; 1,6] × l'intervalle (à partir de 4 taps).
+- « Locked » dès 6 taps si la gigue (écart-type des résidus) est < max(18 ms, 3,5 % de l'intervalle).
+- Nouvelle mesure après 2 s de silence (`RESET_AFTER`, ou 2,2 × l'intervalle si plus long), ou si un écart sort de [0,6 ; 1,6] × l'intervalle (à partir de 4 taps). Après une pause, l'ancien tempo reste affiché (×2/÷2 intégré) jusqu'au 2e tap.
 - `÷2` / `×2` : multiplicateur `factor` appliqué à l'estimation (bornes 20–400 BPM).
 - Copy BPM (presse-papiers), Reset.
-- Click : métronome Web Audio (ordonnanceur à anticipation : `setInterval` de 25 ms, fenêtre de 120 ms), calé sur la phase du dernier tap ; temps fort toutes les 4 temps ; flash visuel synchronisé sur le pavé.
-- Wake lock d'écran demandé à chaque tap ; dernier BPM gardé dans `localStorage` (`tt.bpm`).
-- Clavier : Espace / Entrée / T pour taper, Échap / R pour remettre à zéro.
+- Click : métronome Web Audio (ordonnanceur à anticipation : `setInterval` de 25 ms, fenêtre de 120 ms), grille ancrée sur le dernier tap, le 1er tap de la mesure étant un temps fort (accent tous les 4 clics, y compris en ×2/÷2) ; flash visuel synchronisé sur le pavé. Reprise après interruption iOS (état `interrupted`) et pas de rafale après un passage en arrière-plan.
+- Wake lock d'écran demandé à chaque tap, au démarrage du Click et au retour dans l'app ; dernier BPM gardé dans `localStorage` (`tt.bpm`).
+- Clavier : Espace / Entrée / T pour taper, Échap / R pour remettre à zéro (ignorés avec Cmd/Ctrl/Alt).
+- Service worker : cache-first, pré-cache avec `cache: 'reload'`. La page cherche une mise à jour à chaque retour dans l'app et recharge quand elle est inactive ou masquée.
+- Paysage (iOS ignore l'orientation du manifest) : lecture à gauche, pavé à droite.
+- Mode silencieux : le Click est muet si le bouton silence est activé. `navigator.audioSession.type = 'playback'` le rendrait audible, mais risque de couper la musique d'une autre app : non retenu pour l'instant.
 
 ## Design (à respecter)
 

@@ -16,9 +16,10 @@ Web app de tap tempo pour iPhone, installable sur l'écran d'accueil et utilisab
 - `÷2` / `×2` corrigent un tempo compté en demi ou double temps.
 - **Click** lance un métronome calé sur la phase de tes derniers taps.
 - **Copy BPM** copie la valeur.
-- Sur ordi : Espace / Entrée pour taper, Échap pour remettre à zéro.
+- Sur ordi : Espace / Entrée / T pour taper, Échap / R pour remettre à zéro.
 
 ## Notes
 
 - Le métronome est muet si le bouton silence de l'iPhone est activé.
-- Après une mise à jour, change `VERSION` dans `sw.js` pour que l'iPhone récupère la nouvelle version.
+- Après une mise à jour, change `VERSION` dans `sw.js` pour que l'iPhone récupère la nouvelle version. L'app se recharge d'elle-même dès qu'elle est inactive ou passe en arrière-plan.
+- Les polices (Big Shoulders Display, IBM Plex Mono) sont hébergées dans `fonts/` sous licence SIL OFL, pour fonctionner hors ligne.
